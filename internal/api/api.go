@@ -2,9 +2,9 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"pokedex/internal/config"
 )
@@ -24,19 +24,19 @@ type LocationsData struct {
 func GetLocations(url string, data *LocationsData, config *config.Config) error {
 	response, err := http.Get(url)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	body, err := io.ReadAll(response.Body)
 	response.Body.Close()
 	if response.StatusCode > 299 {
-		log.Fatalf("Response failed with status code: %d and \nbody: %s\n", response.StatusCode, body)
+		return errors.New(fmt.Sprintf("Response failed with status code: %d and \nbody: %s\n", response.StatusCode, body))
 	}
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	err = json.Unmarshal(body, data)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	config.PrevLocationUrl = data.Previous
 	config.NextLocationUrl = data.Next

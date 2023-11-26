@@ -72,10 +72,7 @@ func getCommands() map[string]cliCommand {
 func main() {
 	scanner := bufio.NewScanner(os.Stdin)
 	commands := getCommands()
-	conf := config.Config{
-		NextLocationUrl: "https://pokeapi.co/api/v2/location-area?offset=0&limit=20",
-		PrevLocationUrl: "",
-	}
+	conf := config.NewConfig()
 	fmt.Printf("pokedex > ")
 	for scanner.Scan() {
 		line := scanner.Text()
