@@ -20,4 +20,6 @@
 .env
 
 # Project specific
-pokedex
+build/*
+
+!.gitkeep
