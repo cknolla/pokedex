@@ -2,39 +2,20 @@ package main
 
 import (
 	"bufio"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
-	"log"
-	"net/http"
 	"os"
+	"pokedex/internal/api"
+	"pokedex/internal/config"
 )
 
 type cliCommand struct {
 	name        string
 	description string
-	callback    func(*config) error
+	callback    func(*config.Config) error
 }
 
-type config struct {
-	nextLocationUrl string
-	prevLocationUrl string
-}
-
-type locationResult struct {
-	Name string `json:"name"`
-	Url  string `json:"url"`
-}
-
-type locationsData struct {
-	Count    int              `json:"count"`
-	Next     string           `json:"next"`
-	Previous string           `json:"previous"`
-	Results  []locationResult `json:"results"`
-}
-
-func commandHelp(config *config) error {
+func commandHelp(config *config.Config) error {
 	fmt.Printf("\n")
 	for name, command := range getCommands() {
 		fmt.Printf("%s: %s\n", name, command.description)
@@ -42,64 +23,25 @@ func commandHelp(config *config) error {
 	return nil
 }
 
-func commandExit(config *config) error {
+func commandExit(config *config.Config) error {
 	os.Exit(0)
 	return nil
 }
 
-func commandMap(config *config) error {
-	response, err := http.Get(config.nextLocationUrl)
-	if err != nil {
-		log.Fatal(err)
+func commandMap(config *config.Config) error {
+	if config.NextLocationUrl == "" {
+		return errors.New("at the end of the locations list")
 	}
-	body, err := io.ReadAll(response.Body)
-	response.Body.Close()
-	if response.StatusCode > 299 {
-		log.Fatalf("Response failed with status code: %d and \nbody: %s\n", response.StatusCode, body)
-	}
-	if err != nil {
-		log.Fatal(err)
-	}
-	var locations locationsData
-	err = json.Unmarshal(body, &locations)
-	if err != nil {
-		log.Fatal(err)
-	}
-	config.prevLocationUrl = locations.Previous
-	config.nextLocationUrl = locations.Next
-	for _, result := range locations.Results {
-		fmt.Println(result.Name)
-	}
-	return nil
+	var locations api.LocationsData
+	return api.GetLocations(config.NextLocationUrl, &locations, config)
 }
 
-func commandMapb(config *config) error {
-	if config.prevLocationUrl == "" {
+func commandMapb(config *config.Config) error {
+	if config.PrevLocationUrl == "" {
 		return errors.New("at the beginning of locations list")
 	}
-	response, err := http.Get(config.prevLocationUrl)
-	if err != nil {
-		log.Fatal(err)
-	}
-	body, err := io.ReadAll(response.Body)
-	response.Body.Close()
-	if response.StatusCode > 299 {
-		log.Fatalf("Response failed with status code: %d and \nbody: %s\n", response.StatusCode, body)
-	}
-	if err != nil {
-		log.Fatal(err)
-	}
-	var locations locationsData
-	err = json.Unmarshal(body, &locations)
-	if err != nil {
-		log.Fatal(err)
-	}
-	config.prevLocationUrl = locations.Previous
-	config.nextLocationUrl = locations.Next
-	for _, result := range locations.Results {
-		fmt.Println(result.Name)
-	}
-	return nil
+	var locations api.LocationsData
+	return api.GetLocations(config.PrevLocationUrl, &locations, config)
 }
 
 func getCommands() map[string]cliCommand {
@@ -130,9 +72,9 @@ func getCommands() map[string]cliCommand {
 func main() {
 	scanner := bufio.NewScanner(os.Stdin)
 	commands := getCommands()
-	conf := config{
-		nextLocationUrl: "https://pokeapi.co/api/v2/location-area?offset=0&limit=20",
-		prevLocationUrl: "",
+	conf := config.Config{
+		NextLocationUrl: "https://pokeapi.co/api/v2/location-area?offset=0&limit=20",
+		PrevLocationUrl: "",
 	}
 	fmt.Printf("pokedex > ")
 	for scanner.Scan() {
