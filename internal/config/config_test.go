@@ -1,7 +1,7 @@
 package config
 
 import (
-	"pokedex/internal/test"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
@@ -9,10 +9,6 @@ func TestNewConfig(t *testing.T) {
 	config := NewConfig()
 	expectedNextLocationUrl := "https://pokeapi.co/api/v2/location-area?offset=0&limit=20"
 	expectedPrevLocationUrl := ""
-	if config.NextLocationUrl != expectedNextLocationUrl {
-		t.Error(test.WriteStringDiff(expectedNextLocationUrl, config.NextLocationUrl))
-	}
-	if config.PrevLocationUrl != expectedPrevLocationUrl {
-		t.Error(test.WriteStringDiff(expectedPrevLocationUrl, config.PrevLocationUrl))
-	}
+	assert.Equal(t, expectedNextLocationUrl, config.NextLocationUrl)
+	assert.Equal(t, expectedPrevLocationUrl, config.PrevLocationUrl)
 }

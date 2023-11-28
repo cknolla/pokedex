@@ -32,10 +32,9 @@ func TestGetLocations(t *testing.T) {
 	for _, testCase := range testCases {
 		t.Run(testCase.description, func(t *testing.T) {
 			var err error
-			cfg := config.Config{
-				NextLocationUrl: testCase.nextUrl,
-				PrevLocationUrl: testCase.prevUrl,
-			}
+			cfg := config.NewConfig()
+			cfg.NextLocationUrl = testCase.nextUrl
+			cfg.PrevLocationUrl = testCase.prevUrl
 			var data LocationsData
 			locations, err := GetLocations(testCase.url, &data, &cfg)
 			if err != nil {

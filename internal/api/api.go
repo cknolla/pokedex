@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"pokedex/internal/config"
 )
@@ -22,21 +23,26 @@ type LocationsData struct {
 }
 
 func GetLocations(url string, data *LocationsData, config *config.Config) ([]locationResult, error) {
-	response, err := http.Get(url)
-	if err != nil {
-		return nil, err
+	body, found := config.Cache.Get(url)
+	if !found {
+		log.Println("url not found in cache")
+		response, err := http.Get(url)
+		if err != nil {
+			return nil, err
+		}
+		body, err = io.ReadAll(response.Body)
+		response.Body.Close()
+		if response.StatusCode > 299 {
+			return nil, errors.New(
+				fmt.Sprintf("Response failed with status code: %d and \nbody: %s\n", response.StatusCode, body),
+			)
+		}
+		if err != nil {
+			return nil, err
+		}
+		config.Cache.Add(url, body)
 	}
-	body, err := io.ReadAll(response.Body)
-	response.Body.Close()
-	if response.StatusCode > 299 {
-		return nil, errors.New(
-			fmt.Sprintf("Response failed with status code: %d and \nbody: %s\n", response.StatusCode, body),
-		)
-	}
-	if err != nil {
-		return nil, err
-	}
-	err = json.Unmarshal(body, data)
+	err := json.Unmarshal(body, data)
 	if err != nil {
 		return nil, err
 	}
