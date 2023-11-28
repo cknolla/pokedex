@@ -33,7 +33,14 @@ func commandMap(config *config.Config) error {
 		return errors.New("at the end of the locations list")
 	}
 	var locations api.LocationsData
-	return api.GetLocations(config.NextLocationUrl, &locations, config)
+	results, err := api.GetLocations(config.NextLocationUrl, &locations, config)
+	if err != nil {
+		return err
+	}
+	for _, result := range results {
+		fmt.Println(result.Name)
+	}
+	return nil
 }
 
 func commandMapb(config *config.Config) error {
@@ -41,7 +48,14 @@ func commandMapb(config *config.Config) error {
 		return errors.New("at the beginning of locations list")
 	}
 	var locations api.LocationsData
-	return api.GetLocations(config.PrevLocationUrl, &locations, config)
+	results, err := api.GetLocations(config.PrevLocationUrl, &locations, config)
+	if err != nil {
+		return err
+	}
+	for _, result := range results {
+		fmt.Println(result.Name)
+	}
+	return nil
 }
 
 func getCommands() map[string]cliCommand {
