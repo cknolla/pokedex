@@ -31,8 +31,7 @@ func commandMap(config *config.Config, args []string) error {
 	if config.NextLocationUrl == "" {
 		return errors.New("at the end of the locations list")
 	}
-	var locations api.LocationsData
-	results, err := api.GetLocations(config.ApiRoot+config.NextLocationUrl, &locations, config)
+	results, err := api.GetLocations(config.NextLocationUrl, config)
 	if err != nil {
 		return err
 	}
@@ -46,8 +45,7 @@ func commandMapb(config *config.Config, args []string) error {
 	if config.PrevLocationUrl == "" {
 		return errors.New("at the beginning of locations list")
 	}
-	var locations api.LocationsData
-	results, err := api.GetLocations(config.ApiRoot+config.PrevLocationUrl, &locations, config)
+	results, err := api.GetLocations(config.PrevLocationUrl, config)
 	if err != nil {
 		return err
 	}
@@ -58,13 +56,12 @@ func commandMapb(config *config.Config, args []string) error {
 }
 
 func commandExplore(config *config.Config, args []string) error {
-	if len(args) < 1 {
+	if len(args) != 1 {
 		return errors.New("must provide a location name to explore")
 	}
 	location := args[0]
 	fmt.Printf("Exploring %s...\n", location)
-	var data api.PokemonResponse
-	pokemons, err := api.GetLocationDetails(config.ApiRoot+"/location-area/"+location, &data, config)
+	pokemons, err := api.GetLocationDetails("/location-area/"+location, config)
 	if err != nil {
 		return err
 	}
@@ -75,12 +72,30 @@ func commandExplore(config *config.Config, args []string) error {
 	return nil
 }
 
+func commandCatch(config *config.Config, args []string) error {
+	if len(args) != 1 {
+		return errors.New("must provide a pokemon name to catch")
+	}
+	pokemon := args[0]
+	fmt.Printf("Throwing a pokeball at %s...\n", pokemon)
+	caught, err := api.CatchPokemon(pokemon, config)
+	if err != nil {
+		return err
+	}
+	if caught {
+		fmt.Printf("%s was caught!\n", pokemon)
+	} else {
+		fmt.Printf("%s escaped!\n", pokemon)
+	}
+	return nil
+}
+
 func GetCommands() map[string]cliCommand {
 	return map[string]cliCommand{
-		"help": {
-			Name:        "help",
-			Description: "Displays a help message",
-			Callback:    commandHelp,
+		"catch": {
+			Name:        "catch",
+			Description: "Attempt to catch a pokemon by name",
+			Callback:    commandCatch,
 		},
 		"exit": {
 			Name:        "exit",
@@ -91,6 +106,11 @@ func GetCommands() map[string]cliCommand {
 			Name:        "explore",
 			Description: "Explore a particular location for its pokemon",
 			Callback:    commandExplore,
+		},
+		"help": {
+			Name:        "help",
+			Description: "Displays a help message",
+			Callback:    commandHelp,
 		},
 		"map": {
 			Name:        "map",

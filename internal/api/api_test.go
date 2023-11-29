@@ -9,49 +9,47 @@ import (
 func TestGetLocations(t *testing.T) {
 	testCases := []struct {
 		description  string
-		url          string
-		nextUrl      string
-		prevUrl      string
+		path         string
+		nextPath     string
+		prevPath     string
 		errorMessage string
 	}{
 		{
 			description:  "get first next",
-			url:          "https://pokeapi.co/api/v2/location-area?offset=0&limit=20",
-			nextUrl:      "https://pokeapi.co/api/v2/location-area?offset=20&limit=20",
-			prevUrl:      "",
+			path:         "/location-area?offset=0&limit=20",
+			nextPath:     "/location-area?offset=20&limit=20",
+			prevPath:     "",
 			errorMessage: "",
 		},
 		{
-			description:  "error if empty url",
-			url:          "",
-			nextUrl:      "",
-			prevUrl:      "",
-			errorMessage: "Get \"\": unsupported protocol scheme \"\"",
+			description:  "error if empty path",
+			path:         "",
+			nextPath:     "",
+			prevPath:     "",
+			errorMessage: "path must not be empty",
 		},
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.description, func(t *testing.T) {
 			var err error
 			cfg := config.NewConfig()
-			cfg.NextLocationUrl = testCase.nextUrl
-			cfg.PrevLocationUrl = testCase.prevUrl
-			var data LocationsData
-			locations, err := GetLocations(testCase.url, &data, &cfg)
+			cfg.NextLocationUrl = testCase.nextPath
+			cfg.PrevLocationUrl = testCase.prevPath
+			locations, err := GetLocations(testCase.path, &cfg)
 			if err != nil {
 				assert.EqualError(t, err, testCase.errorMessage)
 				return
 			}
 			assert.Equal(t, 20, len(locations), "locations not of expected length")
-			assert.Equal(t, testCase.nextUrl, cfg.NextLocationUrl, "resulting nextUrl not as expected")
-			assert.Equal(t, testCase.prevUrl, cfg.PrevLocationUrl, "resulting prevUrl not as expected")
+			assert.Equal(t, testCase.nextPath, cfg.NextLocationUrl, "resulting nextPath not as expected")
+			assert.Equal(t, testCase.prevPath, cfg.PrevLocationUrl, "resulting prevPath not as expected")
 		})
 	}
 }
 
 func TestGetLocationDetails(t *testing.T) {
 	cfg := config.NewConfig()
-	var data PokemonResponse
-	pokemons, err := GetLocationDetails(cfg.ApiRoot+"/location-area/canalave-city-area", &data, &cfg)
+	pokemons, err := GetLocationDetails("/location-area/canalave-city-area", &cfg)
 	assert.Nil(t, err)
 	for index, pokemonName := range []string{
 		"tentacool",
@@ -67,5 +65,47 @@ func TestGetLocationDetails(t *testing.T) {
 		"lumineon",
 	} {
 		assert.Equal(t, pokemonName, pokemons[index].Name)
+	}
+}
+
+func TestCatchPokemon(t *testing.T) {
+	testCases := []struct {
+		description    string
+		name           string
+		expectedCaught bool
+		expectedError  string
+	}{
+		{
+			description:    "catch pikachu",
+			name:           "pikachu",
+			expectedCaught: true,
+			expectedError:  "",
+		},
+		{
+			description:    "fail to catch zapdos",
+			name:           "zapdos",
+			expectedCaught: false,
+			expectedError:  "",
+		},
+		{
+			description:    "bad name",
+			name:           "NaN",
+			expectedCaught: false,
+			expectedError:  "pokemon name not found",
+		},
+	}
+	for _, testCase := range testCases {
+		t.Run(testCase.description, func(t *testing.T) {
+			cfg := config.NewConfig()
+			cfg.Generator.Seed(1)
+			caught, err := CatchPokemon(testCase.name, &cfg)
+			if testCase.expectedError != "" {
+				assert.EqualError(t, err, testCase.expectedError)
+				return
+			} else {
+				assert.Nil(t, err)
+			}
+			assert.Equal(t, testCase.expectedCaught, caught)
+		})
 	}
 }
