@@ -6,6 +6,7 @@ import (
 	"os"
 	"pokedex/internal/api"
 	"pokedex/internal/config"
+	"strings"
 )
 
 type cliCommand struct {
@@ -103,6 +104,17 @@ func commandInspect(config *config.Config, args []string) error {
 	return nil
 }
 
+func commandPokedex(cfg *config.Config, args []string) error {
+	fmt.Println("Your Pokedex:")
+	for _, key := range cfg.Cache.GetKeys() {
+		name, found := strings.CutPrefix(key, "pokemon/")
+		if found {
+			fmt.Printf("\t%s\n", name)
+		}
+	}
+	return nil
+}
+
 func GetCommands() map[string]cliCommand {
 	return map[string]cliCommand{
 		"catch": {
@@ -139,6 +151,11 @@ func GetCommands() map[string]cliCommand {
 			Name:        "mapb",
 			Description: "Get previous 20 locations",
 			Callback:    commandMapb,
+		},
+		"pokedex": {
+			Name:        "pokedex",
+			Description: "Print all caught Pokemon",
+			Callback:    commandPokedex,
 		},
 	}
 }

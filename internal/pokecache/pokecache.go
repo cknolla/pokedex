@@ -42,6 +42,14 @@ func (c *Cache) Get(key string) ([]byte, bool) {
 	return nil, false
 }
 
+func (c *Cache) GetKeys() []string {
+	var keys []string
+	for key, _ := range c.cache {
+		keys = append(keys, key)
+	}
+	return keys
+}
+
 func (c *Cache) reapLoop(interval time.Duration) {
 	ticker := time.NewTicker(interval)
 	for range ticker.C {

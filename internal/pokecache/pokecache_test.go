@@ -11,6 +11,7 @@ func TestCache(t *testing.T) {
 	c := NewCache(waitTime)
 	c.Add("test_key", []byte{1, 2, 3}, false)
 	c.Add("permanent_key", []byte{4, 5, 6}, true)
+	assert.Equal(t, []string{"test_key", "permanent_key"}, c.GetKeys())
 	value, found := c.Get("test_key")
 	assert.True(t, found, "test_key not found in cache")
 	assert.Equal(t, []byte{1, 2, 3}, value, "value retrieved from cache is %v", value)
