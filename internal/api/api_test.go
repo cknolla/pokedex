@@ -47,3 +47,25 @@ func TestGetLocations(t *testing.T) {
 		})
 	}
 }
+
+func TestGetLocationDetails(t *testing.T) {
+	cfg := config.NewConfig()
+	var data PokemonResponse
+	pokemons, err := GetLocationDetails(cfg.ApiRoot+"/location-area/canalave-city-area", &data, &cfg)
+	assert.Nil(t, err)
+	for index, pokemonName := range []string{
+		"tentacool",
+		"tentacruel",
+		"staryu",
+		"magikarp",
+		"gyarados",
+		"wingull",
+		"pelipper",
+		"shellos",
+		"gastrodon",
+		"finneon",
+		"lumineon",
+	} {
+		assert.Equal(t, pokemonName, pokemons[index].Name)
+	}
+}

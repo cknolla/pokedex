@@ -6,6 +6,7 @@ import (
 	"os"
 	"pokedex/internal/cli"
 	"pokedex/internal/config"
+	"strings"
 )
 
 func main() {
@@ -15,10 +16,12 @@ func main() {
 	fmt.Printf("pokedex > ")
 	for scanner.Scan() {
 		line := scanner.Text()
+		words := strings.Split(line, " ")
+		cmd, args := words[0], words[1:]
 		//fmt.Printf("%s\n", line)
 		for _, command := range commands {
-			if line == command.Name {
-				err := command.Callback(&conf)
+			if cmd == command.Name {
+				err := command.Callback(&conf, args)
 				if err != nil {
 					fmt.Printf("%s\n", err)
 				}

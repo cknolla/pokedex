@@ -22,7 +22,22 @@ type LocationsData struct {
 	Results  []locationResult `json:"results"`
 }
 
-func GetLocations(url string, data *LocationsData, config *config.Config) ([]locationResult, error) {
+type PokemonResponse struct {
+	Id                int                 `json:"id"`
+	Name              string              `json:"name"`
+	PokemonEncounters []pokemonEncounters `json:"pokemon_encounters"`
+}
+
+type pokemonResult struct {
+	Name string `json:"name"`
+	Url  string `json:"url"`
+}
+
+type pokemonEncounters struct {
+	Pokemon pokemonResult `json:"pokemon"`
+}
+
+func getResponseBody(url string, config *config.Config) ([]byte, error) {
 	body, found := config.Cache.Get(url)
 	if !found {
 		log.Println("url not found in cache")
@@ -42,11 +57,35 @@ func GetLocations(url string, data *LocationsData, config *config.Config) ([]loc
 		}
 		config.Cache.Add(url, body)
 	}
-	err := json.Unmarshal(body, data)
+	return body, nil
+}
+
+func GetLocations(url string, data *LocationsData, config *config.Config) ([]locationResult, error) {
+	body, err := getResponseBody(url, config)
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal(body, data)
 	if err != nil {
 		return nil, err
 	}
 	config.PrevLocationUrl = data.Previous
 	config.NextLocationUrl = data.Next
 	return data.Results, nil
+}
+
+func GetLocationDetails(url string, data *PokemonResponse, config *config.Config) ([]pokemonResult, error) {
+	body, err := getResponseBody(url, config)
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal(body, data)
+	if err != nil {
+		return nil, err
+	}
+	var pokemons []pokemonResult
+	for _, encounter := range data.PokemonEncounters {
+		pokemons = append(pokemons, encounter.Pokemon)
+	}
+	return pokemons, nil
 }

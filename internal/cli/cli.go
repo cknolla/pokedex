@@ -11,10 +11,10 @@ import (
 type cliCommand struct {
 	Name        string
 	Description string
-	Callback    func(*config.Config) error
+	Callback    func(*config.Config, []string) error
 }
 
-func commandHelp(config *config.Config) error {
+func commandHelp(config *config.Config, args []string) error {
 	fmt.Printf("\n")
 	for name, command := range GetCommands() {
 		fmt.Printf("%s: %s\n", name, command.Description)
@@ -22,17 +22,17 @@ func commandHelp(config *config.Config) error {
 	return nil
 }
 
-func commandExit(config *config.Config) error {
+func commandExit(config *config.Config, args []string) error {
 	os.Exit(0)
 	return nil
 }
 
-func commandMap(config *config.Config) error {
+func commandMap(config *config.Config, args []string) error {
 	if config.NextLocationUrl == "" {
 		return errors.New("at the end of the locations list")
 	}
 	var locations api.LocationsData
-	results, err := api.GetLocations(config.NextLocationUrl, &locations, config)
+	results, err := api.GetLocations(config.ApiRoot+config.NextLocationUrl, &locations, config)
 	if err != nil {
 		return err
 	}
@@ -42,17 +42,35 @@ func commandMap(config *config.Config) error {
 	return nil
 }
 
-func commandMapb(config *config.Config) error {
+func commandMapb(config *config.Config, args []string) error {
 	if config.PrevLocationUrl == "" {
 		return errors.New("at the beginning of locations list")
 	}
 	var locations api.LocationsData
-	results, err := api.GetLocations(config.PrevLocationUrl, &locations, config)
+	results, err := api.GetLocations(config.ApiRoot+config.PrevLocationUrl, &locations, config)
 	if err != nil {
 		return err
 	}
 	for _, result := range results {
 		fmt.Println(result.Name)
+	}
+	return nil
+}
+
+func commandExplore(config *config.Config, args []string) error {
+	if len(args) < 1 {
+		return errors.New("must provide a location name to explore")
+	}
+	location := args[0]
+	fmt.Printf("Exploring %s...\n", location)
+	var data api.PokemonResponse
+	pokemons, err := api.GetLocationDetails(config.ApiRoot+"/location-area/"+location, &data, config)
+	if err != nil {
+		return err
+	}
+	fmt.Println("Found Pokemon:")
+	for _, pokemon := range pokemons {
+		fmt.Printf(" - %s\n", pokemon.Name)
 	}
 	return nil
 }
@@ -68,6 +86,11 @@ func GetCommands() map[string]cliCommand {
 			Name:        "exit",
 			Description: "Exit the Pokedex",
 			Callback:    commandExit,
+		},
+		"explore": {
+			Name:        "explore",
+			Description: "Explore a particular location for its pokemon",
+			Callback:    commandExplore,
 		},
 		"map": {
 			Name:        "map",
