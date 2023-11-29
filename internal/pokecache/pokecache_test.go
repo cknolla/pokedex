@@ -9,12 +9,16 @@ import (
 func TestCache(t *testing.T) {
 	waitTime := 5 * time.Millisecond
 	c := NewCache(waitTime)
-	c.Add("test_key", []byte{1, 2, 3})
+	c.Add("test_key", []byte{1, 2, 3}, false)
+	c.Add("permanent_key", []byte{4, 5, 6}, true)
 	value, found := c.Get("test_key")
 	assert.True(t, found, "test_key not found in cache")
 	assert.Equal(t, []byte{1, 2, 3}, value, "value retrieved from cache is %v", value)
-	time.Sleep(waitTime)
+	time.Sleep(waitTime * 2)
 	value, found = c.Get("test_key")
 	assert.False(t, found, "test_key still in cache after waitTime")
 	assert.Nil(t, value, "value not returned nil if key not found")
+	value, found = c.Get("permanent_key")
+	assert.True(t, found)
+	assert.Equal(t, []byte{4, 5, 6}, value)
 }

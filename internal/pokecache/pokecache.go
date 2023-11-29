@@ -8,6 +8,7 @@ import (
 type cacheEntry struct {
 	createdAt time.Time
 	val       []byte
+	permanent bool
 }
 
 type Cache struct {
@@ -24,10 +25,11 @@ func NewCache(interval time.Duration) Cache {
 	return c
 }
 
-func (c *Cache) Add(key string, val []byte) {
+func (c *Cache) Add(key string, val []byte, permanent bool) {
 	c.cache[key] = cacheEntry{
 		createdAt: time.Now(),
 		val:       val,
+		permanent: permanent,
 	}
 }
 
@@ -51,7 +53,7 @@ func (c *Cache) reap(t time.Time, interval time.Duration) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	for key, entry := range c.cache {
-		if t.Sub(entry.createdAt) > interval {
+		if !entry.permanent && t.Sub(entry.createdAt) > interval {
 			delete(c.cache, key)
 		}
 	}

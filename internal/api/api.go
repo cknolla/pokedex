@@ -100,7 +100,7 @@ func getResponseBody(path string, cfg *config.Config) ([]byte, int, error) {
 		if err != nil {
 			return nil, response.StatusCode, err
 		}
-		cfg.Cache.Add(path, body)
+		cfg.Cache.Add(path, body, false)
 	}
 	return body, http.StatusOK, nil
 }
@@ -164,11 +164,14 @@ func CatchPokemon(name string, cfg *config.Config) (bool, error) {
 	threshold := cfg.Generator.Float32()
 	difficulty := 1 / float32(pokemon.BaseExperience) * 100
 	if difficulty > threshold {
-		pokemonBytes, err := encodePokemon(&pokemon)
-		if err != nil {
-			return false, nil
+		// only store the pokemon if it was caught
+		if !found {
+			pokemonBytes, err := encodePokemon(&pokemon)
+			if err != nil {
+				return false, nil
+			}
+			cfg.Cache.Add("pokemon/"+name, pokemonBytes, true)
 		}
-		cfg.Cache.Add("pokemon/"+name, pokemonBytes)
 		return true, nil
 	}
 	return false, nil
