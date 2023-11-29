@@ -109,3 +109,14 @@ func TestCatchPokemon(t *testing.T) {
 		})
 	}
 }
+
+func TestInspectPokemon(t *testing.T) {
+	cfg := config.NewConfig()
+	cfg.Generator.Seed(1)
+	caught, err := CatchPokemon("pikachu", &cfg)
+	assert.Nil(t, err)
+	assert.True(t, caught)
+	outputString, err := InspectPokemon("pikachu", &cfg)
+	assert.Nil(t, err)
+	assert.Equal(t, "Name: pikachu\nHeight: 4\nWeight: 60\nStats:\n\thp: 35\n\tattack: 55\n\tdefense: 40\n\tspecial-attack: 50\n\tspecial-defense: 50\n\tspeed: 90\nTypes:\n\telectric\n", outputString)
+}

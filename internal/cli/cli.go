@@ -76,17 +76,30 @@ func commandCatch(config *config.Config, args []string) error {
 	if len(args) != 1 {
 		return errors.New("must provide a pokemon name to catch")
 	}
-	pokemon := args[0]
-	fmt.Printf("Throwing a pokeball at %s...\n", pokemon)
-	caught, err := api.CatchPokemon(pokemon, config)
+	pokemonName := args[0]
+	fmt.Printf("Throwing a pokeball at %s...\n", pokemonName)
+	caught, err := api.CatchPokemon(pokemonName, config)
 	if err != nil {
 		return err
 	}
 	if caught {
-		fmt.Printf("%s was caught!\n", pokemon)
+		fmt.Printf("%s was caught!\n", pokemonName)
 	} else {
-		fmt.Printf("%s escaped!\n", pokemon)
+		fmt.Printf("%s escaped!\n", pokemonName)
 	}
+	return nil
+}
+
+func commandInspect(config *config.Config, args []string) error {
+	if len(args) != 1 {
+		return errors.New("must provide a pokemon name to inspect")
+	}
+	pokemonName := args[0]
+	outputString, err := api.InspectPokemon(pokemonName, config)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("%s", outputString)
 	return nil
 }
 
@@ -94,7 +107,7 @@ func GetCommands() map[string]cliCommand {
 	return map[string]cliCommand{
 		"catch": {
 			Name:        "catch",
-			Description: "Attempt to catch a pokemon by name",
+			Description: "Attempt to catch a Pokemon by name",
 			Callback:    commandCatch,
 		},
 		"exit": {
@@ -104,13 +117,18 @@ func GetCommands() map[string]cliCommand {
 		},
 		"explore": {
 			Name:        "explore",
-			Description: "Explore a particular location for its pokemon",
+			Description: "Explore a particular location for its Pokemon",
 			Callback:    commandExplore,
 		},
 		"help": {
 			Name:        "help",
 			Description: "Displays a help message",
 			Callback:    commandHelp,
+		},
+		"inspect": {
+			Name:        "inspect",
+			Description: "Displays information about Pokemon that have been caught",
+			Callback:    commandInspect,
 		},
 		"map": {
 			Name:        "map",
