@@ -7,8 +7,8 @@ import (
 
 func TestNewConfig(t *testing.T) {
 	config := NewConfig()
-	expectedNextLocationUrl := "/location-area?offset=0&limit=20"
-	expectedPrevLocationUrl := ""
-	assert.Equal(t, expectedNextLocationUrl, config.NextLocationPath)
-	assert.Equal(t, expectedPrevLocationUrl, config.PrevLocationPath)
+	expectedNextLocationQuery := "offset=0&limit=20"
+	expectedPrevLocationQuery := ""
+	assert.Equal(t, expectedNextLocationQuery, config.NextLocationQuery)
+	assert.Equal(t, expectedPrevLocationQuery, config.PrevLocationQuery)
 }

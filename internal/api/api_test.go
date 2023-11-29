@@ -9,40 +9,40 @@ import (
 func TestGetLocations(t *testing.T) {
 	testCases := []struct {
 		description  string
-		path         string
-		nextPath     string
-		prevPath     string
+		queryString  string
+		nextQuery    string
+		prevQuery    string
 		errorMessage string
 	}{
 		{
 			description:  "get first next",
-			path:         "/location-area?offset=0&limit=20",
-			nextPath:     "/location-area?offset=20&limit=20",
-			prevPath:     "",
+			queryString:  "offset=0&limit=20",
+			nextQuery:    "offset=20&limit=20",
+			prevQuery:    "",
 			errorMessage: "",
 		},
 		{
-			description:  "error if empty path",
-			path:         "",
-			nextPath:     "",
-			prevPath:     "",
-			errorMessage: "path must not be empty",
+			description:  "double-sided",
+			queryString:  "offset=20&limit=20",
+			nextQuery:    "offset=40&limit=20",
+			prevQuery:    "offset=0&limit=20",
+			errorMessage: "",
 		},
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.description, func(t *testing.T) {
 			var err error
 			cfg := config.NewConfig()
-			cfg.NextLocationPath = testCase.nextPath
-			cfg.PrevLocationPath = testCase.prevPath
-			locations, err := GetLocations(testCase.path, &cfg)
+			cfg.NextLocationQuery = testCase.nextQuery
+			cfg.PrevLocationQuery = testCase.prevQuery
+			locations, err := GetLocations(testCase.queryString, &cfg)
 			if err != nil {
 				assert.EqualError(t, err, testCase.errorMessage)
 				return
 			}
-			assert.Equal(t, 20, len(locations), "locations not of expected length")
-			assert.Equal(t, testCase.nextPath, cfg.NextLocationPath, "resulting nextPath not as expected")
-			assert.Equal(t, testCase.prevPath, cfg.PrevLocationPath, "resulting prevPath not as expected")
+			assert.Equal(t, 20, len(locations))
+			assert.Equal(t, testCase.nextQuery, cfg.NextLocationQuery)
+			assert.Equal(t, testCase.prevQuery, cfg.PrevLocationQuery)
 		})
 	}
 }

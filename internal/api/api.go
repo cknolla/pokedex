@@ -69,8 +69,8 @@ func getResponseBody(path string, config *config.Config) ([]byte, int, error) {
 }
 
 // GetLocations returns a paginated list of all locations
-func GetLocations(path string, config *config.Config) ([]locationResult, error) {
-	body, _, err := getResponseBody(path, config)
+func GetLocations(queryString string, config *config.Config) ([]locationResult, error) {
+	body, _, err := getResponseBody("/location-area?"+queryString, config)
 	if err != nil {
 		return nil, err
 	}
@@ -79,8 +79,10 @@ func GetLocations(path string, config *config.Config) ([]locationResult, error) 
 	if err != nil {
 		return nil, err
 	}
-	config.PrevLocationPath = strings.ReplaceAll(data.Previous, config.ApiRoot, "")
-	config.NextLocationPath = strings.ReplaceAll(data.Next, config.ApiRoot, "")
+	_, prevQuery, _ := strings.Cut(data.Previous, "?")
+	config.PrevLocationQuery = prevQuery
+	_, nextQuery, _ := strings.Cut(data.Next, "?")
+	config.NextLocationQuery = nextQuery
 	return data.Results, nil
 }
 

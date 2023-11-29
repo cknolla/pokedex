@@ -28,10 +28,10 @@ func commandExit(config *config.Config, args []string) error {
 }
 
 func commandMap(config *config.Config, args []string) error {
-	if config.NextLocationPath == "" {
+	if config.NextLocationQuery == "" {
 		return errors.New("at the end of the locations list")
 	}
-	results, err := api.GetLocations(config.NextLocationPath, config)
+	results, err := api.GetLocations(config.NextLocationQuery, config)
 	if err != nil {
 		return err
 	}
@@ -42,10 +42,10 @@ func commandMap(config *config.Config, args []string) error {
 }
 
 func commandMapb(config *config.Config, args []string) error {
-	if config.PrevLocationPath == "" {
+	if config.PrevLocationQuery == "" {
 		return errors.New("at the beginning of locations list")
 	}
-	results, err := api.GetLocations(config.PrevLocationPath, config)
+	results, err := api.GetLocations(config.PrevLocationQuery, config)
 	if err != nil {
 		return err
 	}
