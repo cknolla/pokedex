@@ -20,7 +20,7 @@ func TestCommandMapErrorsAtEnd(t *testing.T) {
 
 func TestCommandMapb(t *testing.T) {
 	cfg := config.NewConfig()
-	cfg.PrevLocationUrl = cfg.ApiRoot + "/location-area?offset=0&limit=20"
+	cfg.PrevLocationUrl = "/location-area?offset=0&limit=20"
 	assert.Nil(t, commandMapb(&cfg, nil))
 }
 
