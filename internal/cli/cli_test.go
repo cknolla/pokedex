@@ -13,20 +13,20 @@ func TestCommandMap(t *testing.T) {
 
 func TestCommandMapErrorsAtEnd(t *testing.T) {
 	cfg := config.NewConfig()
-	cfg.NextLocationUrl = ""
+	cfg.NextLocationPath = ""
 	err := commandMap(&cfg, nil)
 	assert.EqualError(t, err, "at the end of the locations list")
 }
 
 func TestCommandMapb(t *testing.T) {
 	cfg := config.NewConfig()
-	cfg.PrevLocationUrl = "/location-area?offset=0&limit=20"
+	cfg.PrevLocationPath = "/location-area?offset=0&limit=20"
 	assert.Nil(t, commandMapb(&cfg, nil))
 }
 
 func TestCommandMapbErrorsAtBeginning(t *testing.T) {
 	cfg := config.NewConfig()
-	cfg.PrevLocationUrl = ""
+	cfg.PrevLocationPath = ""
 	err := commandMapb(&cfg, nil)
 	assert.EqualError(t, err, "at the beginning of locations list")
 }

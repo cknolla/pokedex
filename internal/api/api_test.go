@@ -33,16 +33,16 @@ func TestGetLocations(t *testing.T) {
 		t.Run(testCase.description, func(t *testing.T) {
 			var err error
 			cfg := config.NewConfig()
-			cfg.NextLocationUrl = testCase.nextPath
-			cfg.PrevLocationUrl = testCase.prevPath
+			cfg.NextLocationPath = testCase.nextPath
+			cfg.PrevLocationPath = testCase.prevPath
 			locations, err := GetLocations(testCase.path, &cfg)
 			if err != nil {
 				assert.EqualError(t, err, testCase.errorMessage)
 				return
 			}
 			assert.Equal(t, 20, len(locations), "locations not of expected length")
-			assert.Equal(t, testCase.nextPath, cfg.NextLocationUrl, "resulting nextPath not as expected")
-			assert.Equal(t, testCase.prevPath, cfg.PrevLocationUrl, "resulting prevPath not as expected")
+			assert.Equal(t, testCase.nextPath, cfg.NextLocationPath, "resulting nextPath not as expected")
+			assert.Equal(t, testCase.prevPath, cfg.PrevLocationPath, "resulting prevPath not as expected")
 		})
 	}
 }

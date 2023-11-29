@@ -41,34 +41,36 @@ type pokemonResponse struct {
 	BaseExperience int `json:"base_experience"`
 }
 
-func getResponseBody(path string, config *config.Config) ([]byte, error) {
+// getResponseBody performs the generic http request and caches the result
+func getResponseBody(path string, config *config.Config) ([]byte, int, error) {
 	if path == "" {
-		return nil, errors.New("path must not be empty")
+		return nil, 0, errors.New("path must not be empty")
 	}
 	body, found := config.Cache.Get(path)
 	if !found {
 		//log.Println("path not found in cache")
 		response, err := http.Get(config.ApiRoot + path)
 		if err != nil {
-			return nil, err
+			return nil, response.StatusCode, err
 		}
 		body, err = io.ReadAll(response.Body)
 		response.Body.Close()
 		if response.StatusCode > 299 {
-			return nil, errors.New(
+			return nil, response.StatusCode, errors.New(
 				fmt.Sprintf("Response failed with status code: %d and \nbody: %s\n", response.StatusCode, body),
 			)
 		}
 		if err != nil {
-			return nil, err
+			return nil, response.StatusCode, err
 		}
 		config.Cache.Add(path, body)
 	}
-	return body, nil
+	return body, http.StatusOK, nil
 }
 
+// GetLocations returns a paginated list of all locations
 func GetLocations(path string, config *config.Config) ([]locationResult, error) {
-	body, err := getResponseBody(path, config)
+	body, _, err := getResponseBody(path, config)
 	if err != nil {
 		return nil, err
 	}
@@ -77,13 +79,14 @@ func GetLocations(path string, config *config.Config) ([]locationResult, error) 
 	if err != nil {
 		return nil, err
 	}
-	config.PrevLocationUrl = strings.ReplaceAll(data.Previous, config.ApiRoot, "")
-	config.NextLocationUrl = strings.ReplaceAll(data.Next, config.ApiRoot, "")
+	config.PrevLocationPath = strings.ReplaceAll(data.Previous, config.ApiRoot, "")
+	config.NextLocationPath = strings.ReplaceAll(data.Next, config.ApiRoot, "")
 	return data.Results, nil
 }
 
+// GetLocationDetails returns a list of Pokemon which can be found at a particular location
 func GetLocationDetails(path string, config *config.Config) ([]locationPokemonResult, error) {
-	body, err := getResponseBody(path, config)
+	body, _, err := getResponseBody(path, config)
 	if err != nil {
 		return nil, err
 	}
@@ -99,10 +102,11 @@ func GetLocationDetails(path string, config *config.Config) ([]locationPokemonRe
 	return pokemons, nil
 }
 
+// CatchPokemon attempts to catch a pokemon based on base_experience and returns true if caught
 func CatchPokemon(name string, config *config.Config) (bool, error) {
-	body, err := getResponseBody("/pokemon/"+name, config)
+	body, statusCode, err := getResponseBody("/pokemon/"+name, config)
 	if err != nil {
-		if strings.Contains(err.Error(), "status code: 404") {
+		if statusCode == http.StatusNotFound {
 			err = errors.New("pokemon name not found")
 		}
 		return false, err
